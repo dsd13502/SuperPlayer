@@ -223,11 +223,14 @@ public class SuperPlayer extends RelativeLayout {
     }
 
     /**
-     * 更新暂停状态的控件显示
+     新暂停状态的控件显示
      */
     private void updatePausePlay() {
+        Log.e("...................","status : " + status);
         $.id(R.id.view_jky_player_center_control).visibility(
-                (isShowCenterControl && !videoView.isPlaying()) ? View.VISIBLE : View.GONE);
+                //在视频播放，正在加载，初始状态的时候不显示中间控制器
+                (isShowCenterControl && !videoView.isPlaying() && status != STATUS_LOADING && status != STATUS_IDLE)
+                        ? View.VISIBLE : View.GONE);
         if (videoView.isPlaying()) {
             $.id(R.id.app_video_play).image(R.drawable.ic_pause);
             $.id(R.id.view_jky_player_center_play).image(
@@ -430,6 +433,7 @@ public class SuperPlayer extends RelativeLayout {
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_END:
                         statusChange(STATUS_PLAYING);
+                        updatePausePlay(); //更新所有播放控制按钮
                         break;
                     case IMediaPlayer.MEDIA_INFO_NETWORK_BANDWIDTH:
                         // 显示 下载速度
@@ -627,7 +631,7 @@ public class SuperPlayer extends RelativeLayout {
                 }
             }
             if (isContinuePlay) {
-               videoView.start();
+                videoView.start();
             }
 
         }
@@ -771,6 +775,7 @@ public class SuperPlayer extends RelativeLayout {
      */
     public void play(String url, int currentPosition) {
         this.url = url;
+        status = STATUS_IDLE;
         if (!isNetListener) {// 如果设置不监听网络的变化，则取消监听网络变化的广播
             unregisterNetReceiver();
         } else {
@@ -998,7 +1003,7 @@ public class SuperPlayer extends RelativeLayout {
         if (force || isShowing) {
             handler.removeMessages(MESSAGE_SHOW_PROGRESS);
             showBottomControl(false);
-            if (videoView.isPlaying() ){
+            if (videoView.isPlaying()){
                 $.id(R.id.view_jky_player_center_control).gone();
             }
             showTopControl(false);
